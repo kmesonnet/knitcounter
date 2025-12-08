@@ -1002,13 +1002,19 @@
                 fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
                     headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
                 })
-                .then(response => response.json())
-                .then(importedData => {
-                    if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
-                        data = importedData;
-                        saveData();
-                        renderProjectList();
-                        alert('Data loaded from Google Drive!');
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const importedData = JSON.parse(text);
+                        if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
+                            data = importedData;
+                            saveData();
+                            renderProjectList();
+                            alert('Data loaded from Google Drive!');
+                        }
+                    } catch (error) {
+                        console.error('Parse error:', error);
+                        alert('Failed to parse file from Google Drive');
                     }
                 })
                 .catch(error => {
