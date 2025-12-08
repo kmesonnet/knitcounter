@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
     <style>
         * {
             margin: 0;
@@ -132,12 +134,12 @@
 
         .backup-buttons {
             padding: 20px;
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
 
         .backup-btn {
-            flex: 1;
             padding: 12px;
             border: none;
             border-radius: 8px;
@@ -146,6 +148,10 @@
             font-weight: 500;
             background: #444;
             color: white;
+        }
+
+        .backup-btn.gdrive {
+            background: #4285f4;
         }
 
         /* フォーム */
@@ -415,8 +421,10 @@
         </div>
 
         <div class="backup-buttons">
-            <button class="backup-btn" onclick="exportData()">📥 Export Backup</button>
-            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+            <button class="backup-btn" onclick="exportData()">📥 Export Local</button>
+            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Local</button>
+            <button class="backup-btn gdrive" onclick="saveToGoogleDrive()">☁️ Save to Drive</button>
+            <button class="backup-btn gdrive" onclick="loadFromGoogleDrive()">☁️ Load from Drive</button>
             <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
         </div>
 
@@ -518,6 +526,16 @@
     </div>
 
     <script>
+        // Google Drive API設定
+        const API_KEY = 'AIzaSyCYKhA5LahgDKOb9QsFNDMYux5POU0lKIk';
+        const CLIENT_ID = '393451951974-1lioa1k6n8i30jfq0896mcvm5r361dik.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        
+        let tokenClient;
+        let accessToken = null;
+        let pickerInited = false;
+        let gisInited = false;
+
         let data = { projects: [] };
         let currentProjectId = null;
         let editingProjectId = null;
@@ -525,6 +543,40 @@
         function init() {
             loadData();
             renderProjectList();
+            gapiLoaded();
+            gisLoaded();
+        }
+
+        // Google API初期化
+        function gapiLoaded() {
+            gapi.load('picker', () => {
+                pickerInited = true;
+            });
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // 後で設定
+            });
+            gisInited = true;
+        }
+
+        function getToken(callback) {
+            tokenClient.callback = async (response) => {
+                if (response.error !== undefined) {
+                    throw (response);
+                }
+                accessToken = response.access_token;
+                callback();
+            };
+
+            if (accessToken === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
         }
 
         function loadData() {
@@ -889,6 +941,81 @@
                 event.target.value = '';
             };
             reader.readAsText(file);
+        }
+
+        // Google Driveに保存
+        function saveToGoogleDrive() {
+            if (!gisInited || !pickerInited) {
+                alert('Google Drive is still loading...');
+                return;
+            }
+
+            getToken(() => {
+                const dataStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const metadata = {
+                    name: `knitting-backup-${new Date().toISOString().split('T')[0]}.json`,
+                    mimeType: 'application/json',
+                };
+
+                const form = new FormData();
+                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                form.append('file', blob);
+
+                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                    body: form,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Saved to Google Drive!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to save to Google Drive');
+                });
+            });
+        }
+
+        // Google Driveから読み込み
+        function loadFromGoogleDrive() {
+            if (!gisInited || !pickerInited) {
+                alert('Google Drive is still loading...');
+                return;
+            }
+
+            getToken(() => {
+                const picker = new google.picker.PickerBuilder()
+                    .addView(google.picker.ViewId.DOCS)
+                    .setOAuthToken(accessToken)
+                    .setDeveloperKey(API_KEY)
+                    .setCallback(pickerCallback)
+                    .build();
+                picker.setVisible(true);
+            });
+        }
+
+        function pickerCallback(data) {
+            if (data.action === google.picker.Action.PICKED) {
+                const fileId = data.docs[0].id;
+                fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+                })
+                .then(response => response.json())
+                .then(importedData => {
+                    if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
+                        data = importedData;
+                        saveData();
+                        renderProjectList();
+                        alert('Data loaded from Google Drive!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load from Google Drive');
+                });
+            }
         }
 
         init();
