@@ -996,29 +996,38 @@
             });
         }
 
-        function pickerCallback(data) {
-            if (data.action === google.picker.Action.PICKED) {
-                const fileId = data.docs[0].id;
+        function pickerCallback(pickerData) {
+            if (pickerData.action === google.picker.Action.PICKED) {
+                const fileId = pickerData.docs[0].id;
+                console.log('Loading file:', fileId);
                 fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
                     headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
                 })
-                .then(response => response.text())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.text();
+                })
                 .then(text => {
+                    console.log('File content length:', text.length);
+                    console.log('First 100 chars:', text.substring(0, 100));
                     try {
                         const importedData = JSON.parse(text);
+                        console.log('Parsed data:', importedData);
                         if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
                             data = importedData;
+                            console.log('Data after assignment:', data);
                             saveData();
                             renderProjectList();
                             alert('Data loaded from Google Drive!');
                         }
                     } catch (error) {
                         console.error('Parse error:', error);
-                        alert('Failed to parse file from Google Drive');
+                        console.error('Raw text:', text);
+                        alert('Failed to parse file from Google Drive. Check console for details.');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Fetch error:', error);
                     alert('Failed to load from Google Drive');
                 });
             }
