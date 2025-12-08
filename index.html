@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編み物パターンカウンター</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #242424;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: #183E6D;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 400;
+            color: white;
+        }
+
+        /* タブ削除 */
+
+        /* プロジェクト一覧 */
+        .project-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .project-photo-container {
+            width: 100%;
+            height: 200px;
+            background: #a0b4c0;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .project-photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-card-content {
+            padding: 16px;
+        }
+
+        .project-info {
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .project-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 12px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #183E6D;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .backup-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .backup-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            background: #444;
+            color: white;
+        }
+
+        /* フォーム */
+        .form-container {
+            padding: 20px;
+            background: #242424;
+            min-height: 100vh;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #333;
+            color: white;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #183E6D;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: white;
+        }
+
+        /* カウンター画面 */
+        .counter-main {
+            background: #183E6D;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .circular-progress {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            stroke: rgba(255,255,255,0.1);
+            fill: none;
+            stroke-width: 12;
+        }
+
+        .progress-ring-progress {
+            stroke: #5a7ea5;
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s;
+        }
+
+        .counter-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .counter-number {
+            font-size: 56px;
+            font-weight: 300;
+            line-height: 1;
+            color: white;
+        }
+
+        .counter-label-small {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+
+        .circular-controls {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .circular-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .circular-btn-reset {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .circular-btn-main {
+            background: #5a7ea5;
+            color: white;
+            width: 72px;
+            height: 72px;
+            font-size: 32px;
+        }
+
+        .circular-btn-minus {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .counter-section {
+            background: #333;
+            margin: 12px 20px;
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 144px;
+        }
+
+        .pattern-display {
+            background: #2a2a2a;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 20px;
+            min-height: 180px;
+        }
+
+        .pattern-text {
+            font-size: 22px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            min-height: 105px;
+        }
+
+        .stitch-count {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .notes-section textarea {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 12px;
+            min-height: 70px;
+        }
+
+        .notes-label {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .edit-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .photo-preview-img {
+            width: 100%;
+            border-radius: 8px;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .photo-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .photo-delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .project-subtitle {
+            font-size: 14px;
+            opacity: 1;
+            color: #ccc;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- プロジェクト一覧画面 -->
+    <div id="listScreen" class="screen active">
+        <div class="header">
+            <h1>My Projects</h1>
+        </div>
+
+        <div class="backup-buttons">
+            <button class="backup-btn" onclick="exportData()">📥 Export Backup</button>
+            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+        </div>
+
+        <div id="projectList" class="project-list"></div>
+
+        <button class="fab" onclick="newProject()">+</button>
+    </div>
+
+    <!-- プロジェクト編集画面 -->
+    <div id="editScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="cancelEdit()">←</button>
+            <h1 id="editTitle">New Project</h1>
+        </div>
+
+        <div class="form-container">
+            <div class="form-group">
+                <label>Project Name *</label>
+                <input type="text" id="projectName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Needle Size</label>
+                <input type="text" id="needleSize">
+            </div>
+
+            <div class="form-group">
+                <label>Yarn Details</label>
+                <input type="text" id="yarnDetails">
+            </div>
+
+            <div class="form-group">
+                <label>Dye Lot Number</label>
+                <input type="text" id="dyeLot">
+            </div>
+
+            <div class="form-group">
+                <label>Memo</label>
+                <textarea id="memo"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Pattern *</label>
+                <textarea id="pattern" style="min-height: 200px;" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Photo</label>
+                <input type="file" id="photoInputEdit" accept="image/*" onchange="handlePhotoUploadEdit(event)">
+                <div id="photoPreviewEdit" style="margin-top: 12px;"></div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProject()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カウンター画面 -->
+    <div id="counterScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="backToList()">←</button>
+            <h1 id="counterProjectName"></h1>
+            <div class="project-subtitle" id="counterProjectMeta"></div>
+        </div>
+
+        <div class="counter-main">
+            <div class="circular-progress">
+                <svg class="progress-ring" width="250" height="250">
+                    <circle class="progress-ring-circle" cx="125" cy="125" r="110"></circle>
+                    <circle class="progress-ring-progress" id="progressCircle" cx="125" cy="125" r="110"></circle>
+                </svg>
+                <div class="counter-display">
+                    <div class="counter-number" id="rowDisplay">0</div>
+                    <div class="counter-label-small">Rows</div>
+                </div>
+                <div class="circular-controls">
+                    <button class="circular-btn circular-btn-reset" onclick="resetCounter()">↺</button>
+                    <button class="circular-btn circular-btn-main" onclick="changeRow(1)">+</button>
+                    <button class="circular-btn circular-btn-minus" onclick="changeRow(-1)">−</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="pattern-display">
+            <div class="pattern-text" id="currentPattern">パターンを読み込んでいます...</div>
+            <div class="stitch-count" id="stitchCount"></div>
+        </div>
+
+        <div class="counter-section notes-section">
+            <div class="notes-label">Notes:</div>
+            <textarea id="projectNotes"></textarea>
+        </div>
+
+        <div style="padding: 0 20px 20px 20px;">
+            <button class="edit-btn" onclick="editCurrentProject()">edit</button>
+        </div>
+    </div>
+
+    <script>
+        let data = { projects: [] };
+        let currentProjectId = null;
+        let editingProjectId = null;
+
+        function init() {
+            loadData();
+            renderProjectList();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('knittingPatternData');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('knittingPatternData', JSON.stringify(data));
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function renderProjectList() {
+            const container = document.getElementById('projectList');
+            const projects = data.projects.filter(p => !p.isArchived);
+
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="empty-state">No projects yet</div>';
+                return;
+            }
+
+            container.innerHTML = projects.map(p => `
+                <div class="project-card">
+                    <div class="project-photo-container" onclick="openCounter('${p.id}')">
+                        ${p.photo ? `<img src="${p.photo}" alt="${p.name}">` : ''}
+                    </div>
+                    <div class="project-card-content">
+                        <div class="project-info" onclick="openCounter('${p.id}')">
+                            <h3 class="project-name">${p.name}</h3>
+                        </div>
+                        <div class="project-actions">
+                            <button class="action-btn" onclick="editProjectBtn('${p.id}')">✏️</button>
+                            <button class="action-btn" onclick="removeProject('${p.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function newProject() {
+            editingProjectId = null;
+            document.getElementById('editTitle').textContent = 'New Project';
+            clearForm();
+            showScreen('editScreen');
+        }
+
+        function editProjectBtn(projectId) {
+            const project = data.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            editingProjectId = projectId;
+            document.getElementById('editTitle').textContent = 'Edit Project';
+            document.getElementById('projectName').value = project.name;
+            document.getElementById('needleSize').value = project.needleSize || '';
+            document.getElementById('yarnDetails').value = project.yarnDetails || '';
+            document.getElementById('dyeLot').value = project.dyeLot || '';
+            document.getElementById('memo').value = project.memo || '';
+            document.getElementById('pattern').value = project.pattern;
+            
+            displayPhotoEdit(project.photo);
+            
+            showScreen('editScreen');
+        }
+
+        function deleteProjectBtn(projectId) {
+            if (confirm('このプロジェクトを削除しますか?')) {
+                data.projects = data.projects.filter(p => p.id !== projectId);
+                saveData();
+                renderProjectList();
+            }
+        }
+
+        function removeProject(projectId) {
+            alert('削除ボタンがクリックされました: ' + projectId);
+            if (confirm('このプロジェクトを削除しますか?')) {
+                data.projects = data.projects.filter(p => p.id !== projectId);
+                saveData();
+                renderProjectList();
+            }
+        }
+
+        function editCurrentProject() {
+            editProject(new Event('click'), currentProjectId);
+        }
+
+        function clearForm() {
+            document.getElementById('projectName').value = '';
+            document.getElementById('needleSize').value = '';
+            document.getElementById('yarnDetails').value = '';
+            document.getElementById('dyeLot').value = '';
+            document.getElementById('memo').value = '';
+            document.getElementById('pattern').value = '';
+            displayPhotoEdit('');
+        }
+
+        function saveProject() {
+            const name = document.getElementById('projectName').value.trim();
+            const pattern = document.getElementById('pattern').value.trim();
+
+            if (!name || !pattern) {
+                alert('Project name and pattern are required');
+                return;
+            }
+
+            const projectData = {
+                name,
+                needleSize: document.getElementById('needleSize').value.trim(),
+                yarnDetails: document.getElementById('yarnDetails').value.trim(),
+                dyeLot: document.getElementById('dyeLot').value.trim(),
+                memo: document.getElementById('memo').value.trim(),
+                pattern,
+                photo: editingProjectId ? data.projects.find(p => p.id === editingProjectId).photo : '',
+                lastUpdated: Date.now()
+            };
+
+            if (editingProjectId) {
+                const project = data.projects.find(p => p.id === editingProjectId);
+                Object.assign(project, projectData);
+            } else {
+                projectData.id = Date.now().toString();
+                projectData.currentRow = 1;
+                projectData.notes = '';
+                projectData.isArchived = false;
+                data.projects.push(projectData);
+            }
+
+            saveData();
+            showScreen('listScreen');
+            renderProjectList();
+        }
+
+        function cancelEdit() {
+            showScreen('listScreen');
+        }
+
+        function toggleArchive(e, projectId) {
+            e.stopPropagation();
+            const project = data.projects.find(p => p.id === projectId);
+            if (project) {
+                project.isArchived = !project.isArchived;
+                saveData();
+                renderProjectList();
+            }
+        }
+
+        function deleteProject(e, projectId) {
+            if (e) e.stopPropagation();
+            if (confirm('このプロジェクトを削除しますか?')) {
+                data.projects = data.projects.filter(p => p.id !== projectId);
+                saveData();
+                renderProjectList();
+            }
+        }
+
+        function openCounter(projectId) {
+            currentProjectId = projectId;
+            const project = data.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            document.getElementById('counterProjectName').textContent = project.name;
+            let meta = '';
+            if (project.needleSize) meta += project.needleSize;
+            if (project.yarnDetails) meta += (meta ? ' • ' : '') + project.yarnDetails;
+            document.getElementById('counterProjectMeta').textContent = meta;
+            
+            document.getElementById('projectNotes').value = project.notes || '';
+            
+            document.getElementById('projectNotes').addEventListener('input', function() {
+                project.notes = this.value;
+                saveData();
+            });
+            
+            updateCounterDisplay(project);
+            showScreen('counterScreen');
+        }
+
+        function handlePhotoUploadEdit(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    if (editingProjectId) {
+                        const project = data.projects.find(p => p.id === editingProjectId);
+                        if (project) {
+                            project.photo = compressedDataUrl;
+                        }
+                    }
+                    displayPhotoEdit(compressedDataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayPhotoEdit(photoData) {
+            const container = document.getElementById('photoPreviewEdit');
+            if (photoData) {
+                container.innerHTML = `
+                    <div class="photo-container">
+                        <img src="${photoData}" class="photo-preview-img" alt="Photo">
+                        <button class="photo-delete-btn" onclick="deletePhotoEdit()">×</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function deletePhotoEdit() {
+            if (editingProjectId) {
+                const project = data.projects.find(p => p.id === editingProjectId);
+                if (project) {
+                    project.photo = '';
+                }
+            }
+            displayPhotoEdit('');
+            document.getElementById('photoInputEdit').value = '';
+        }
+
+        function updateCounterDisplay(project) {
+            document.getElementById('rowDisplay').textContent = project.currentRow || 0;
+            
+            const rows = parsePattern(project.pattern);
+            const totalRows = rows.length > 0 ? Math.max(...rows.map(r => r.row)) : 100;
+            const progress = totalRows > 0 ? (project.currentRow / totalRows) * 100 : 0;
+            updateProgressRing(progress);
+            
+            const currentRowData = rows.find(r => r.row === project.currentRow);
+
+            if (currentRowData) {
+                document.getElementById('currentPattern').textContent = currentRowData.text;
+                document.getElementById('stitchCount').textContent = 
+                    currentRowData.stitches ? `${currentRowData.stitches} sts` : '';
+            } else {
+                document.getElementById('currentPattern').textContent = 'Pattern not found';
+                document.getElementById('stitchCount').textContent = '';
+            }
+        }
+
+        function updateProgressRing(percent) {
+            const circle = document.getElementById('progressCircle');
+            const radius = 110;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function parsePattern(pattern) {
+            const lines = pattern.split('\n');
+            const rows = [];
+
+            for (const line of lines) {
+                const rowMatch = line.match(/^Row\s+(\d+)\./i);
+                if (rowMatch) {
+                    const rowNum = parseInt(rowMatch[1]);
+                    const stitchMatch = line.match(/=\s*(\d+)\s*sts/i);
+                    rows.push({
+                        row: rowNum,
+                        text: line,
+                        stitches: stitchMatch ? parseInt(stitchMatch[1]) : null
+                    });
+                }
+            }
+
+            return rows;
+        }
+
+        function changeRow(delta) {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (!project) return;
+
+            const rows = parsePattern(project.pattern);
+            const maxRow = rows.length > 0 ? Math.max(...rows.map(r => r.row)) : 999;
+
+            const newValue = (project.currentRow || 0) + delta;
+            
+            // 0未満にならない、かつパターンの最大行を超えない
+            project.currentRow = Math.max(0, Math.min(newValue, maxRow));
+
+            saveData();
+            updateCounterDisplay(project);
+        }
+
+        function resetCounter() {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (project) {
+                project.currentRow = 0;
+                saveData();
+                updateCounterDisplay(project);
+            }
+        }
+
+        function backToList() {
+            showScreen('listScreen');
+            renderProjectList();
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `knitting-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            alert('Backup saved!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
+                        data = importedData;
+                        saveData();
+                        renderProjectList();
+                        alert('Data restored!');
+                    }
+                } catch (error) {
+                    alert('Invalid backup file');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        init();
+    </script>
+</body>
+</html>
