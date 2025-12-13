@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>編み物パターンカウンター</title>
+    <title>Knitting Counter v2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
     <style>
         * {
             margin: 0;
@@ -25,7 +23,6 @@
             min-height: 100vh;
         }
 
-        /* ヘッダー */
         .header {
             background: #183E6D;
             padding: 20px;
@@ -51,7 +48,12 @@
             color: white;
         }
 
-        /* タブ削除 */
+        .project-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            color: #ccc;
+            margin-top: 4px;
+        }
 
         /* プロジェクト一覧 */
         .project-list {
@@ -102,8 +104,6 @@
         .project-actions {
             display: flex;
             gap: 12px;
-            position: relative;
-            z-index: 10;
         }
 
         .action-btn {
@@ -112,11 +112,8 @@
             cursor: pointer;
             font-size: 20px;
             padding: 8px;
-            position: relative;
-            z-index: 10;
         }
 
-        /* FAB */
         .fab {
             position: fixed;
             right: 20px;
@@ -134,12 +131,12 @@
 
         .backup-buttons {
             padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
             gap: 12px;
         }
 
         .backup-btn {
+            flex: 1;
             padding: 12px;
             border: none;
             border-radius: 8px;
@@ -148,10 +145,6 @@
             font-weight: 500;
             background: #444;
             color: white;
-        }
-
-        .backup-btn.gdrive {
-            background: #4285f4;
         }
 
         /* フォーム */
@@ -227,7 +220,7 @@
             position: relative;
             width: 250px;
             height: 250px;
-            margin: 20px auto;
+            margin: 10px auto;
         }
 
         .progress-ring {
@@ -309,48 +302,151 @@
             color: white;
         }
 
-        .counter-section {
-            background: #333;
-            margin: 12px 20px;
-            padding: 20px;
-            border-radius: 12px;
-            min-height: 144px;
+        /* パーツ進捗バー */
+        .parts-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+            color: white;
         }
 
+        .part-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 80px;
+            min-width: 80px;
+        }
+
+        .part-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .part-dot.completed {
+            background: #5a7ea5;
+        }
+
+        .part-dot.current {
+            background: white;
+        }
+
+        .part-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        /* バッジ */
+        .badges-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* パターン表示 */
         .pattern-display {
             background: #2a2a2a;
             padding: 16px;
             border-radius: 8px;
             margin: 12px 20px;
-            min-height: 180px;
+            min-height: 100px;
         }
 
         .pattern-text {
-            font-size: 22px;
+            font-size: 18px;
             line-height: 1.6;
-            margin-bottom: 8px;
             color: white;
             font-family: 'Montserrat', sans-serif;
-            min-height: 105px;
         }
 
-        .stitch-count {
+        /* リピートパターン */
+        .repeat-section {
+            background: #2a2a2a;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 20px;
+            border: 2px solid #5a7ea5;
+        }
+
+        .repeat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .repeat-id {
+            background: #444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .repeat-goal {
+            background: #555;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .repeat-end-btn {
+            background: #5a7ea5;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+        }
+
+        .repeat-cycle {
             color: #999;
+            font-size: 12px;
+            margin-bottom: 8px;
         }
 
         .notes-section textarea {
             background: #333;
             border: none;
             color: white;
-            padding: 12px;
-            min-height: 70px;
+            padding: 6px 12px;
+            min-height: 16px;
+            line-height: 1.1;
+            font-size: 14px;
         }
 
         .notes-label {
             color: #999;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .counter-section {
+            background: #333;
+            margin: 12px 20px;
+            padding: 8px 20px;
+            border-radius: 12px;
         }
 
         .edit-btn {
@@ -368,6 +464,14 @@
             text-align: center;
             padding: 60px 20px;
             color: #666;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
         }
 
         .photo-preview-img {
@@ -396,21 +500,6 @@
             cursor: pointer;
             font-size: 18px;
         }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        .project-subtitle {
-            font-size: 14px;
-            opacity: 1;
-            color: #ccc;
-            margin-top: 4px;
-        }
     </style>
 </head>
 <body>
@@ -421,10 +510,8 @@
         </div>
 
         <div class="backup-buttons">
-            <button class="backup-btn" onclick="exportData()">📥 Export Local</button>
-            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Local</button>
-            <button class="backup-btn gdrive" onclick="saveToGoogleDrive()">☁️ Save to Drive</button>
-            <button class="backup-btn gdrive" onclick="loadFromGoogleDrive()">☁️ Load from Drive</button>
+            <button class="backup-btn" onclick="exportData()">📥 Export Backup</button>
+            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
             <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
         </div>
 
@@ -467,8 +554,9 @@
             </div>
 
             <div class="form-group">
-                <label>Pattern *</label>
-                <textarea id="pattern" style="min-height: 200px;" required></textarea>
+                <label>Pattern CSV *</label>
+                <input type="file" id="csvInput" accept=".csv" onchange="handleCSVUpload(event)">
+                <div id="csvPreview" style="margin-top: 12px; color: #ccc; font-size: 14px;"></div>
             </div>
 
             <div class="form-group">
@@ -508,11 +596,28 @@
                     <button class="circular-btn circular-btn-minus" onclick="changeRow(-1)">−</button>
                 </div>
             </div>
+
+            <!-- パーツ進捗バー -->
+            <div class="parts-progress" id="partsProgress"></div>
+
+            <!-- バッジ -->
+            <div class="badges-container" id="badgesContainer"></div>
         </div>
 
-        <div class="pattern-display">
-            <div class="pattern-text" id="currentPattern">パターンを読み込んでいます...</div>
-            <div class="stitch-count" id="stitchCount"></div>
+        <!-- 通常パターン表示 -->
+        <div class="pattern-display" id="normalPattern" style="display: none;">
+            <div class="pattern-text" id="currentPattern"></div>
+        </div>
+
+        <!-- リピートパターン表示 -->
+        <div class="repeat-section" id="repeatPattern" style="display: none;">
+            <div class="repeat-header">
+                <div class="repeat-id" id="repeatId"></div>
+                <div class="repeat-goal" id="repeatGoal"></div>
+                <button class="repeat-end-btn" onclick="endRepeat()">END</button>
+            </div>
+            <div class="repeat-cycle" id="repeatCycle"></div>
+            <div class="pattern-text" id="repeatPatternText"></div>
         </div>
 
         <div class="counter-section notes-section">
@@ -526,68 +631,25 @@
     </div>
 
     <script>
-        // Google Drive API設定
-        const API_KEY = 'AIzaSyCYKhA5LahgDKOb9QsFNDMYux5POU0lKIk';
-        const CLIENT_ID = '393451951974-1lioa1k6n8i30jfq0896mcvm5r361dik.apps.googleusercontent.com';
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-        
-        let tokenClient;
-        let accessToken = null;
-        let pickerInited = false;
-        let gisInited = false;
-
         let data = { projects: [] };
         let currentProjectId = null;
         let editingProjectId = null;
+        let uploadedCSVData = null;
 
         function init() {
             loadData();
             renderProjectList();
-            gapiLoaded();
-            gisLoaded();
-        }
-
-        // Google API初期化
-        function gapiLoaded() {
-            gapi.load('picker', () => {
-                pickerInited = true;
-            });
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // 後で設定
-            });
-            gisInited = true;
-        }
-
-        function getToken(callback) {
-            tokenClient.callback = async (response) => {
-                if (response.error !== undefined) {
-                    throw (response);
-                }
-                accessToken = response.access_token;
-                callback();
-            };
-
-            if (accessToken === null) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
-            } else {
-                tokenClient.requestAccessToken({prompt: ''});
-            }
         }
 
         function loadData() {
-            const saved = localStorage.getItem('knittingPatternData');
+            const saved = localStorage.getItem('knittingPatternDataV2');
             if (saved) {
                 data = JSON.parse(saved);
             }
         }
 
         function saveData() {
-            localStorage.setItem('knittingPatternData', JSON.stringify(data));
+            localStorage.setItem('knittingPatternDataV2', JSON.stringify(data));
         }
 
         function showScreen(screenId) {
@@ -622,8 +684,69 @@
             `).join('');
         }
 
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                uploadedCSVData = parseCSV(csvText);
+                
+                const preview = document.getElementById('csvPreview');
+                preview.textContent = `✓ ${uploadedCSVData.length} rows loaded`;
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const rows = [];
+            
+            for (let i = 1; i < lines.length; i++) { // Skip header
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parsed = parseCSVLine(line);
+                rows.push({
+                    parts: parsed[0] || '',
+                    row: parseInt(parsed[1]) || null,
+                    side: parsed[2] || '',
+                    inc: parseInt(parsed[3]) || 0,
+                    dec: parseInt(parsed[4]) || 0,
+                    repeatPattern: parsed[5] || '',
+                    instruction: parsed[6] || ''
+                });
+            }
+            
+            return rows;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            
+            return result;
+        }
+
         function newProject() {
             editingProjectId = null;
+            uploadedCSVData = null;
             document.getElementById('editTitle').textContent = 'New Project';
             clearForm();
             showScreen('editScreen');
@@ -634,29 +757,24 @@
             if (!project) return;
 
             editingProjectId = projectId;
+            uploadedCSVData = project.csvData;
+            
             document.getElementById('editTitle').textContent = 'Edit Project';
             document.getElementById('projectName').value = project.name;
             document.getElementById('needleSize').value = project.needleSize || '';
             document.getElementById('yarnDetails').value = project.yarnDetails || '';
             document.getElementById('dyeLot').value = project.dyeLot || '';
             document.getElementById('memo').value = project.memo || '';
-            document.getElementById('pattern').value = project.pattern;
+            
+            const csvPreview = document.getElementById('csvPreview');
+            csvPreview.textContent = uploadedCSVData ? `✓ ${uploadedCSVData.length} rows loaded` : '';
             
             displayPhotoEdit(project.photo);
             
             showScreen('editScreen');
         }
 
-        function deleteProjectBtn(projectId) {
-            if (confirm('このプロジェクトを削除しますか?')) {
-                data.projects = data.projects.filter(p => p.id !== projectId);
-                saveData();
-                renderProjectList();
-            }
-        }
-
         function removeProject(projectId) {
-            alert('削除ボタンがクリックされました: ' + projectId);
             if (confirm('このプロジェクトを削除しますか?')) {
                 data.projects = data.projects.filter(p => p.id !== projectId);
                 saveData();
@@ -665,7 +783,7 @@
         }
 
         function editCurrentProject() {
-            editProject(new Event('click'), currentProjectId);
+            editProjectBtn(currentProjectId);
         }
 
         function clearForm() {
@@ -674,16 +792,21 @@
             document.getElementById('yarnDetails').value = '';
             document.getElementById('dyeLot').value = '';
             document.getElementById('memo').value = '';
-            document.getElementById('pattern').value = '';
+            document.getElementById('csvInput').value = '';
+            document.getElementById('csvPreview').textContent = '';
             displayPhotoEdit('');
         }
 
         function saveProject() {
             const name = document.getElementById('projectName').value.trim();
-            const pattern = document.getElementById('pattern').value.trim();
 
-            if (!name || !pattern) {
-                alert('Project name and pattern are required');
+            if (!name) {
+                alert('Project name is required');
+                return;
+            }
+
+            if (!uploadedCSVData || uploadedCSVData.length === 0) {
+                alert('Please upload a pattern CSV file');
                 return;
             }
 
@@ -693,19 +816,25 @@
                 yarnDetails: document.getElementById('yarnDetails').value.trim(),
                 dyeLot: document.getElementById('dyeLot').value.trim(),
                 memo: document.getElementById('memo').value.trim(),
-                pattern,
-                photo: editingProjectId ? data.projects.find(p => p.id === editingProjectId).photo : '',
+                csvData: uploadedCSVData,
+                photo: '',
                 lastUpdated: Date.now()
             };
 
             if (editingProjectId) {
                 const project = data.projects.find(p => p.id === editingProjectId);
+                projectData.photo = project.photo;
+                projectData.currentRowIndex = project.currentRowIndex || 0;
+                projectData.repeatCycle = project.repeatCycle || 0;
+                projectData.repeatStartIndex = project.repeatStartIndex || null;
+                projectData.notes = project.notes || '';
                 Object.assign(project, projectData);
             } else {
                 projectData.id = Date.now().toString();
-                projectData.currentRow = 1;
+                projectData.currentRowIndex = 0;
+                projectData.repeatCycle = 0;
+                projectData.repeatStartIndex = null;
                 projectData.notes = '';
-                projectData.isArchived = false;
                 data.projects.push(projectData);
             }
 
@@ -716,25 +845,6 @@
 
         function cancelEdit() {
             showScreen('listScreen');
-        }
-
-        function toggleArchive(e, projectId) {
-            e.stopPropagation();
-            const project = data.projects.find(p => p.id === projectId);
-            if (project) {
-                project.isArchived = !project.isArchived;
-                saveData();
-                renderProjectList();
-            }
-        }
-
-        function deleteProject(e, projectId) {
-            if (e) e.stopPropagation();
-            if (confirm('このプロジェクトを削除しますか?')) {
-                data.projects = data.projects.filter(p => p.id !== projectId);
-                saveData();
-                renderProjectList();
-            }
         }
 
         function openCounter(projectId) {
@@ -830,23 +940,182 @@
         }
 
         function updateCounterDisplay(project) {
-            document.getElementById('rowDisplay').textContent = project.currentRow || 0;
+            const csvData = project.csvData;
+            const currentIndex = project.currentRowIndex || 0;
             
-            const rows = parsePattern(project.pattern);
-            const totalRows = rows.length > 0 ? Math.max(...rows.map(r => r.row)) : 100;
-            const progress = totalRows > 0 ? (project.currentRow / totalRows) * 100 : 0;
-            updateProgressRing(progress);
-            
-            const currentRowData = rows.find(r => r.row === project.currentRow);
-
-            if (currentRowData) {
-                document.getElementById('currentPattern').textContent = currentRowData.text;
-                document.getElementById('stitchCount').textContent = 
-                    currentRowData.stitches ? `${currentRowData.stitches} sts` : '';
-            } else {
-                document.getElementById('currentPattern').textContent = 'Pattern not found';
-                document.getElementById('stitchCount').textContent = '';
+            if (currentIndex >= csvData.length) {
+                document.getElementById('normalPattern').style.display = 'block';
+                document.getElementById('repeatPattern').style.display = 'none';
+                document.getElementById('currentPattern').textContent = 'Pattern completed!';
+                return;
             }
+
+            const currentRow = csvData[currentIndex];
+            
+            // Check if in repeat mode
+            if (project.repeatStartIndex !== null && project.repeatStartIndex !== undefined) {
+                updateRepeatMode(project, currentIndex);
+            } else if (currentRow.instruction && currentRow.instruction.includes('Pattern start')) {
+                // Entering repeat mode
+                project.repeatStartIndex = currentIndex;
+                project.repeatCycle = 0;
+                saveData();
+                updateRepeatMode(project, currentIndex);
+            } else {
+                updateNormalMode(project, currentIndex);
+            }
+            
+            // Update parts progress
+            updatePartsProgress(project, currentIndex);
+            
+            // Update badges
+            updateBadges(project, currentIndex);
+        }
+
+        function updateNormalMode(project, currentIndex) {
+            const csvData = project.csvData;
+            const currentRow = csvData[currentIndex];
+            
+            document.getElementById('normalPattern').style.display = 'block';
+            document.getElementById('repeatPattern').style.display = 'none';
+            
+            document.getElementById('currentPattern').textContent = currentRow.instruction || '';
+            
+            // Count total countable rows (exclude Pattern start/end markers)
+            let totalCountableRows = 0;
+            let currentCountableIndex = 0;
+            
+            for (let i = 0; i < csvData.length; i++) {
+                const row = csvData[i];
+                const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
+                
+                if (!isMarker && row.side) {
+                    totalCountableRows++;
+                    if (i <= currentIndex) {
+                        currentCountableIndex++;
+                    }
+                }
+            }
+            
+            document.getElementById('rowDisplay').textContent = currentCountableIndex;
+            const progress = totalCountableRows > 0 ? (currentCountableIndex / totalCountableRows) * 100 : 0;
+            updateProgressRing(progress);
+        }
+
+        function updateRepeatMode(project, currentIndex) {
+            const csvData = project.csvData;
+            const startIndex = project.repeatStartIndex;
+            const currentRow = csvData[currentIndex];
+            
+            // Find pattern end
+            let endIndex = startIndex + 1;
+            while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                endIndex++;
+            }
+            
+            // Extract repeat info
+            const startRow = csvData[startIndex];
+            const repeatId = startRow.repeatPattern || 'Pattern';
+            const goalMatch = startRow.instruction.match(/until\s+([^|]+)/);
+            const goal = goalMatch ? goalMatch[1].trim() : '';
+            
+            document.getElementById('normalPattern').style.display = 'none';
+            document.getElementById('repeatPattern').style.display = 'block';
+            
+            document.getElementById('repeatId').textContent = repeatId;
+            document.getElementById('repeatGoal').textContent = `until ${goal}`;
+            document.getElementById('repeatCycle').textContent = `Cycle ${project.repeatCycle + 1}`;
+            
+            // Calculate current stitch count
+            const stitchCount = calculateStitchCount(project, currentIndex);
+            
+            // Show current pattern instruction
+            if (currentRow.instruction) {
+                document.getElementById('repeatPatternText').textContent = currentRow.instruction;
+            }
+            
+            // Update progress ring (keep it frozen during repeat)
+            // Count rows up to the start of repeat pattern
+            let totalCountableRows = 0;
+            let currentCountableIndex = 0;
+            
+            for (let i = 0; i < csvData.length; i++) {
+                const row = csvData[i];
+                const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
+                
+                if (!isMarker && row.side) {
+                    totalCountableRows++;
+                    if (i < startIndex) {
+                        currentCountableIndex++;
+                    }
+                }
+            }
+            
+            document.getElementById('rowDisplay').textContent = currentCountableIndex;
+            const progress = totalCountableRows > 0 ? (currentCountableIndex / totalCountableRows) * 100 : 0;
+            updateProgressRing(progress);
+        }
+
+        function calculateStitchCount(project, currentIndex) {
+            const csvData = project.csvData;
+            let stitches = 0;
+            
+            // Find initial stitch count
+            for (let i = 0; i <= currentIndex; i++) {
+                const row = csvData[i];
+                if (row.inc) stitches += row.inc;
+                if (row.dec) stitches -= row.dec;
+            }
+            
+            return stitches;
+        }
+
+        function updatePartsProgress(project, currentIndex) {
+            const csvData = project.csvData;
+            const parts = [...new Set(csvData.map(r => r.parts).filter(p => p))];
+            
+            let currentPart = '';
+            for (let i = 0; i <= currentIndex && i < csvData.length; i++) {
+                if (csvData[i].parts) {
+                    currentPart = csvData[i].parts;
+                }
+            }
+            
+            const container = document.getElementById('partsProgress');
+            let html = '';
+            
+            parts.forEach((part, idx) => {
+                const isCompleted = parts.indexOf(currentPart) > idx;
+                const isCurrent = currentPart === part;
+                
+                html += `
+                    <div class="part-item">
+                        <div class="part-dot ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}"></div>
+                        <div class="part-name">${part}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateBadges(project, currentIndex) {
+            const csvData = project.csvData;
+            const currentRow = csvData[currentIndex];
+            
+            const container = document.getElementById('badgesContainer');
+            let html = '';
+            
+            if (currentRow.side) {
+                html += `<div class="badge">${currentRow.side}</div>`;
+            }
+            
+            const stitches = calculateStitchCount(project, currentIndex);
+            if (stitches > 0) {
+                html += `<div class="badge">${stitches} sts</div>`;
+            }
+            
+            container.innerHTML = html;
         }
 
         function updateProgressRing(percent) {
@@ -859,38 +1128,84 @@
             circle.style.strokeDashoffset = offset;
         }
 
-        function parsePattern(pattern) {
-            const lines = pattern.split('\n');
-            const rows = [];
-
-            for (const line of lines) {
-                const rowMatch = line.match(/^Row\s+(\d+)\./i);
-                if (rowMatch) {
-                    const rowNum = parseInt(rowMatch[1]);
-                    const stitchMatch = line.match(/=\s*(\d+)\s*sts/i);
-                    rows.push({
-                        row: rowNum,
-                        text: line,
-                        stitches: stitchMatch ? parseInt(stitchMatch[1]) : null
-                    });
-                }
-            }
-
-            return rows;
-        }
-
         function changeRow(delta) {
             const project = data.projects.find(p => p.id === currentProjectId);
             if (!project) return;
 
-            const rows = parsePattern(project.pattern);
-            const maxRow = rows.length > 0 ? Math.max(...rows.map(r => r.row)) : 999;
-
-            const newValue = (project.currentRow || 0) + delta;
+            const csvData = project.csvData;
             
-            // 0未満にならない、かつパターンの最大行を超えない
-            project.currentRow = Math.max(0, Math.min(newValue, maxRow));
+            if (project.repeatStartIndex !== null) {
+                // In repeat mode
+                const startIndex = project.repeatStartIndex;
+                let endIndex = startIndex + 1;
+                while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                    endIndex++;
+                }
+                
+                const patternRows = [];
+                for (let i = startIndex + 1; i < endIndex; i++) {
+                    if (csvData[i].side) { // Only actual pattern rows
+                        patternRows.push(i);
+                    }
+                }
+                
+                let currentPatternIndex = patternRows.indexOf(project.currentRowIndex);
+                currentPatternIndex += delta;
+                
+                if (currentPatternIndex < 0) {
+                    if (project.repeatCycle > 0) {
+                        // Go back one cycle
+                        project.repeatCycle--;
+                        currentPatternIndex = patternRows.length - 1;
+                        project.currentRowIndex = patternRows[currentPatternIndex];
+                    } else {
+                        // Exit repeat mode - go back to the row before Pattern start
+                        project.currentRowIndex = Math.max(0, startIndex - 1);
+                        project.repeatStartIndex = null;
+                        project.repeatCycle = 0;
+                    }
+                } else if (currentPatternIndex >= patternRows.length) {
+                    project.repeatCycle++;
+                    currentPatternIndex = 0;
+                    project.currentRowIndex = patternRows[currentPatternIndex];
+                } else {
+                    project.currentRowIndex = patternRows[currentPatternIndex];
+                }
+            } else {
+                // Normal mode
+                const newIndex = (project.currentRowIndex || 0) + delta;
+                
+                if (newIndex < 0) {
+                    project.currentRowIndex = 0;
+                } else if (newIndex >= csvData.length) {
+                    project.currentRowIndex = csvData.length - 1;
+                } else {
+                    project.currentRowIndex = newIndex;
+                }
+            }
 
+            saveData();
+            updateCounterDisplay(project);
+        }
+
+        function endRepeat() {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (!project) return;
+
+            const csvData = project.csvData;
+            const startIndex = project.repeatStartIndex;
+            
+            // Find pattern end
+            let endIndex = startIndex + 1;
+            while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                endIndex++;
+            }
+            
+            // Move to next row after pattern end
+            project.currentRowIndex = endIndex + 1;
+            project.repeatStartIndex = null;
+            project.repeatCycle = 0;
+            
             saveData();
             updateCounterDisplay(project);
         }
@@ -898,7 +1213,9 @@
         function resetCounter() {
             const project = data.projects.find(p => p.id === currentProjectId);
             if (project) {
-                project.currentRow = 0;
+                project.currentRowIndex = 0;
+                project.repeatStartIndex = null;
+                project.repeatCycle = 0;
                 saveData();
                 updateCounterDisplay(project);
             }
@@ -915,7 +1232,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `knitting-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `knitting-backup-v2-${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             URL.revokeObjectURL(url);
             alert('Backup saved!');
@@ -941,96 +1258,6 @@
                 event.target.value = '';
             };
             reader.readAsText(file);
-        }
-
-        // Google Driveに保存
-        function saveToGoogleDrive() {
-            if (!gisInited || !pickerInited) {
-                alert('Google Drive is still loading...');
-                return;
-            }
-
-            getToken(() => {
-                const dataStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const metadata = {
-                    name: `knitting-backup-${new Date().toISOString().split('T')[0]}.json`,
-                    mimeType: 'application/json',
-                };
-
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', blob);
-
-                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                    method: 'POST',
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                    body: form,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert('Saved to Google Drive!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to save to Google Drive');
-                });
-            });
-        }
-
-        // Google Driveから読み込み
-        function loadFromGoogleDrive() {
-            if (!gisInited || !pickerInited) {
-                alert('Google Drive is still loading...');
-                return;
-            }
-
-            getToken(() => {
-                const picker = new google.picker.PickerBuilder()
-                    .addView(google.picker.ViewId.DOCS)
-                    .setOAuthToken(accessToken)
-                    .setDeveloperKey(API_KEY)
-                    .setCallback(pickerCallback)
-                    .build();
-                picker.setVisible(true);
-            });
-        }
-
-        function pickerCallback(pickerData) {
-            if (pickerData.action === google.picker.Action.PICKED) {
-                const fileId = pickerData.docs[0].id;
-                console.log('Loading file:', fileId);
-                fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-                    headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-                })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.text();
-                })
-                .then(text => {
-                    console.log('File content length:', text.length);
-                    console.log('First 100 chars:', text.substring(0, 100));
-                    try {
-                        const importedData = JSON.parse(text);
-                        console.log('Parsed data:', importedData);
-                        if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
-                            data = importedData;
-                            console.log('Data after assignment:', data);
-                            saveData();
-                            renderProjectList();
-                            alert('Data loaded from Google Drive!');
-                        }
-                    } catch (error) {
-                        console.error('Parse error:', error);
-                        console.error('Raw text:', text);
-                        alert('Failed to parse file from Google Drive. Check console for details.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    alert('Failed to load from Google Drive');
-                });
-            }
         }
 
         init();
