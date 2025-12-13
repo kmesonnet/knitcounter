@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編み物パターンカウンター v2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #242424;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #183E6D;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 400;
+            color: white;
+        }
+
+        .project-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            color: #ccc;
+            margin-top: 4px;
+        }
+
+        /* プロジェクト一覧 */
+        .project-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .project-photo-container {
+            width: 100%;
+            height: 200px;
+            background: #a0b4c0;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .project-photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-card-content {
+            padding: 16px;
+        }
+
+        .project-info {
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .project-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px;
+        }
+
+        .fab {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #183E6D;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .backup-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .backup-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            background: #444;
+            color: white;
+        }
+
+        /* フォーム */
+        .form-container {
+            padding: 20px;
+            background: #242424;
+            min-height: 100vh;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #333;
+            color: white;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #183E6D;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: white;
+        }
+
+        /* カウンター画面 */
+        .counter-main {
+            background: #183E6D;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .circular-progress {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            stroke: rgba(255,255,255,0.1);
+            fill: none;
+            stroke-width: 12;
+        }
+
+        .progress-ring-progress {
+            stroke: #5a7ea5;
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s;
+        }
+
+        .counter-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .counter-number {
+            font-size: 56px;
+            font-weight: 300;
+            line-height: 1;
+            color: white;
+        }
+
+        .counter-label-small {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+
+        .circular-controls {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .circular-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .circular-btn-reset {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .circular-btn-main {
+            background: #5a7ea5;
+            color: white;
+            width: 72px;
+            height: 72px;
+            font-size: 32px;
+        }
+
+        .circular-btn-minus {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* パーツ進捗バー */
+        .parts-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .part-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .part-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .part-dot.completed {
+            background: #5a7ea5;
+        }
+
+        .part-dot.current {
+            background: white;
+        }
+
+        .part-line {
+            width: 30px;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .part-line.completed {
+            background: #5a7ea5;
+        }
+
+        .part-name {
+            font-size: 10px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* バッジ */
+        .badges-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* パターン表示 */
+        .pattern-display {
+            background: #2a2a2a;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 20px;
+            min-height: 100px;
+        }
+
+        .pattern-text {
+            font-size: 18px;
+            line-height: 1.6;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* リピートパターン */
+        .repeat-section {
+            background: #2a2a2a;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 20px;
+            border: 2px solid #5a7ea5;
+        }
+
+        .repeat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .repeat-id {
+            background: #444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .repeat-goal {
+            background: #555;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .repeat-end-btn {
+            background: #5a7ea5;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .repeat-cycle {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .notes-section textarea {
+            background: #333;
+            border: none;
+            color: white;
+            padding: 12px;
+            min-height: 70px;
+        }
+
+        .notes-label {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .counter-section {
+            background: #333;
+            margin: 12px 20px;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .edit-btn {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .photo-preview-img {
+            width: 100%;
+            border-radius: 8px;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .photo-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .photo-delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- プロジェクト一覧画面 -->
+    <div id="listScreen" class="screen active">
+        <div class="header">
+            <h1>My Projects</h1>
+        </div>
+
+        <div class="backup-buttons">
+            <button class="backup-btn" onclick="exportData()">📥 Export Backup</button>
+            <button class="backup-btn" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+        </div>
+
+        <div id="projectList" class="project-list"></div>
+
+        <button class="fab" onclick="newProject()">+</button>
+    </div>
+
+    <!-- プロジェクト編集画面 -->
+    <div id="editScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="cancelEdit()">←</button>
+            <h1 id="editTitle">New Project</h1>
+        </div>
+
+        <div class="form-container">
+            <div class="form-group">
+                <label>Project Name *</label>
+                <input type="text" id="projectName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Needle Size</label>
+                <input type="text" id="needleSize">
+            </div>
+
+            <div class="form-group">
+                <label>Yarn Details</label>
+                <input type="text" id="yarnDetails">
+            </div>
+
+            <div class="form-group">
+                <label>Dye Lot Number</label>
+                <input type="text" id="dyeLot">
+            </div>
+
+            <div class="form-group">
+                <label>Memo</label>
+                <textarea id="memo"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Pattern CSV *</label>
+                <input type="file" id="csvInput" accept=".csv" onchange="handleCSVUpload(event)">
+                <div id="csvPreview" style="margin-top: 12px; color: #ccc; font-size: 14px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Photo</label>
+                <input type="file" id="photoInputEdit" accept="image/*" onchange="handlePhotoUploadEdit(event)">
+                <div id="photoPreviewEdit" style="margin-top: 12px;"></div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveProject()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カウンター画面 -->
+    <div id="counterScreen" class="screen">
+        <div class="header">
+            <button class="back-btn" onclick="backToList()">←</button>
+            <h1 id="counterProjectName"></h1>
+            <div class="project-subtitle" id="counterProjectMeta"></div>
+        </div>
+
+        <div class="counter-main">
+            <div class="circular-progress">
+                <svg class="progress-ring" width="250" height="250">
+                    <circle class="progress-ring-circle" cx="125" cy="125" r="110"></circle>
+                    <circle class="progress-ring-progress" id="progressCircle" cx="125" cy="125" r="110"></circle>
+                </svg>
+                <div class="counter-display">
+                    <div class="counter-number" id="rowDisplay">0</div>
+                    <div class="counter-label-small">Rows</div>
+                </div>
+                <div class="circular-controls">
+                    <button class="circular-btn circular-btn-reset" onclick="resetCounter()">↺</button>
+                    <button class="circular-btn circular-btn-main" onclick="changeRow(1)">+</button>
+                    <button class="circular-btn circular-btn-minus" onclick="changeRow(-1)">−</button>
+                </div>
+            </div>
+
+            <!-- パーツ進捗バー -->
+            <div class="parts-progress" id="partsProgress"></div>
+
+            <!-- バッジ -->
+            <div class="badges-container" id="badgesContainer"></div>
+        </div>
+
+        <!-- 通常パターン表示 -->
+        <div class="pattern-display" id="normalPattern" style="display: none;">
+            <div class="pattern-text" id="currentPattern"></div>
+        </div>
+
+        <!-- リピートパターン表示 -->
+        <div class="repeat-section" id="repeatPattern" style="display: none;">
+            <div class="repeat-header">
+                <div class="repeat-id" id="repeatId"></div>
+                <div class="repeat-goal" id="repeatGoal"></div>
+                <button class="repeat-end-btn" onclick="endRepeat()">END</button>
+            </div>
+            <div class="repeat-cycle" id="repeatCycle"></div>
+            <div class="pattern-text" id="repeatPatternText"></div>
+        </div>
+
+        <div class="counter-section notes-section">
+            <div class="notes-label">Notes:</div>
+            <textarea id="projectNotes"></textarea>
+        </div>
+
+        <div style="padding: 0 20px 20px 20px;">
+            <button class="edit-btn" onclick="editCurrentProject()">edit</button>
+        </div>
+    </div>
+
+    <script>
+        let data = { projects: [] };
+        let currentProjectId = null;
+        let editingProjectId = null;
+        let uploadedCSVData = null;
+
+        function init() {
+            loadData();
+            renderProjectList();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('knittingPatternDataV2');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('knittingPatternDataV2', JSON.stringify(data));
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function renderProjectList() {
+            const container = document.getElementById('projectList');
+            const projects = data.projects.filter(p => !p.isArchived);
+
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="empty-state">No projects yet</div>';
+                return;
+            }
+
+            container.innerHTML = projects.map(p => `
+                <div class="project-card">
+                    <div class="project-photo-container" onclick="openCounter('${p.id}')">
+                        ${p.photo ? `<img src="${p.photo}" alt="${p.name}">` : ''}
+                    </div>
+                    <div class="project-card-content">
+                        <div class="project-info" onclick="openCounter('${p.id}')">
+                            <h3 class="project-name">${p.name}</h3>
+                        </div>
+                        <div class="project-actions">
+                            <button class="action-btn" onclick="editProjectBtn('${p.id}')">✏️</button>
+                            <button class="action-btn" onclick="removeProject('${p.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                uploadedCSVData = parseCSV(csvText);
+                
+                const preview = document.getElementById('csvPreview');
+                preview.textContent = `✓ ${uploadedCSVData.length} rows loaded`;
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const rows = [];
+            
+            for (let i = 1; i < lines.length; i++) { // Skip header
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parsed = parseCSVLine(line);
+                if (parsed.length >= 6) {
+                    rows.push({
+                        parts: parsed[0],
+                        side: parsed[1],
+                        inc: parseInt(parsed[2]) || 0,
+                        dec: parseInt(parsed[3]) || 0,
+                        repeatPattern: parsed[4],
+                        instruction: parsed[5]
+                    });
+                }
+            }
+            
+            return rows;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            
+            return result;
+        }
+
+        function newProject() {
+            editingProjectId = null;
+            uploadedCSVData = null;
+            document.getElementById('editTitle').textContent = 'New Project';
+            clearForm();
+            showScreen('editScreen');
+        }
+
+        function editProjectBtn(projectId) {
+            const project = data.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            editingProjectId = projectId;
+            uploadedCSVData = project.csvData;
+            
+            document.getElementById('editTitle').textContent = 'Edit Project';
+            document.getElementById('projectName').value = project.name;
+            document.getElementById('needleSize').value = project.needleSize || '';
+            document.getElementById('yarnDetails').value = project.yarnDetails || '';
+            document.getElementById('dyeLot').value = project.dyeLot || '';
+            document.getElementById('memo').value = project.memo || '';
+            
+            const csvPreview = document.getElementById('csvPreview');
+            csvPreview.textContent = uploadedCSVData ? `✓ ${uploadedCSVData.length} rows loaded` : '';
+            
+            displayPhotoEdit(project.photo);
+            
+            showScreen('editScreen');
+        }
+
+        function removeProject(projectId) {
+            if (confirm('このプロジェクトを削除しますか?')) {
+                data.projects = data.projects.filter(p => p.id !== projectId);
+                saveData();
+                renderProjectList();
+            }
+        }
+
+        function editCurrentProject() {
+            editProjectBtn(currentProjectId);
+        }
+
+        function clearForm() {
+            document.getElementById('projectName').value = '';
+            document.getElementById('needleSize').value = '';
+            document.getElementById('yarnDetails').value = '';
+            document.getElementById('dyeLot').value = '';
+            document.getElementById('memo').value = '';
+            document.getElementById('csvInput').value = '';
+            document.getElementById('csvPreview').textContent = '';
+            displayPhotoEdit('');
+        }
+
+        function saveProject() {
+            const name = document.getElementById('projectName').value.trim();
+
+            if (!name) {
+                alert('Project name is required');
+                return;
+            }
+
+            if (!uploadedCSVData || uploadedCSVData.length === 0) {
+                alert('Please upload a pattern CSV file');
+                return;
+            }
+
+            const projectData = {
+                name,
+                needleSize: document.getElementById('needleSize').value.trim(),
+                yarnDetails: document.getElementById('yarnDetails').value.trim(),
+                dyeLot: document.getElementById('dyeLot').value.trim(),
+                memo: document.getElementById('memo').value.trim(),
+                csvData: uploadedCSVData,
+                photo: '',
+                lastUpdated: Date.now()
+            };
+
+            if (editingProjectId) {
+                const project = data.projects.find(p => p.id === editingProjectId);
+                projectData.photo = project.photo;
+                projectData.currentRowIndex = project.currentRowIndex || 0;
+                projectData.repeatCycle = project.repeatCycle || 0;
+                projectData.repeatStartIndex = project.repeatStartIndex || null;
+                projectData.notes = project.notes || '';
+                Object.assign(project, projectData);
+            } else {
+                projectData.id = Date.now().toString();
+                projectData.currentRowIndex = 0;
+                projectData.repeatCycle = 0;
+                projectData.repeatStartIndex = null;
+                projectData.notes = '';
+                data.projects.push(projectData);
+            }
+
+            saveData();
+            showScreen('listScreen');
+            renderProjectList();
+        }
+
+        function cancelEdit() {
+            showScreen('listScreen');
+        }
+
+        function openCounter(projectId) {
+            currentProjectId = projectId;
+            const project = data.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            document.getElementById('counterProjectName').textContent = project.name;
+            let meta = '';
+            if (project.needleSize) meta += project.needleSize;
+            if (project.yarnDetails) meta += (meta ? ' • ' : '') + project.yarnDetails;
+            document.getElementById('counterProjectMeta').textContent = meta;
+            
+            document.getElementById('projectNotes').value = project.notes || '';
+            
+            document.getElementById('projectNotes').addEventListener('input', function() {
+                project.notes = this.value;
+                saveData();
+            });
+            
+            updateCounterDisplay(project);
+            showScreen('counterScreen');
+        }
+
+        function handlePhotoUploadEdit(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    if (editingProjectId) {
+                        const project = data.projects.find(p => p.id === editingProjectId);
+                        if (project) {
+                            project.photo = compressedDataUrl;
+                        }
+                    }
+                    displayPhotoEdit(compressedDataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayPhotoEdit(photoData) {
+            const container = document.getElementById('photoPreviewEdit');
+            if (photoData) {
+                container.innerHTML = `
+                    <div class="photo-container">
+                        <img src="${photoData}" class="photo-preview-img" alt="Photo">
+                        <button class="photo-delete-btn" onclick="deletePhotoEdit()">×</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function deletePhotoEdit() {
+            if (editingProjectId) {
+                const project = data.projects.find(p => p.id === editingProjectId);
+                if (project) {
+                    project.photo = '';
+                }
+            }
+            displayPhotoEdit('');
+            document.getElementById('photoInputEdit').value = '';
+        }
+
+        function updateCounterDisplay(project) {
+            const csvData = project.csvData;
+            const currentIndex = project.currentRowIndex || 0;
+            
+            if (currentIndex >= csvData.length) {
+                document.getElementById('normalPattern').style.display = 'block';
+                document.getElementById('repeatPattern').style.display = 'none';
+                document.getElementById('currentPattern').textContent = 'Pattern completed!';
+                return;
+            }
+
+            const currentRow = csvData[currentIndex];
+            
+            // Check if in repeat mode
+            if (project.repeatStartIndex !== null && project.repeatStartIndex !== undefined) {
+                updateRepeatMode(project, currentIndex);
+            } else if (currentRow.instruction && currentRow.instruction.includes('Pattern start')) {
+                // Entering repeat mode
+                project.repeatStartIndex = currentIndex;
+                project.repeatCycle = 0;
+                saveData();
+                updateRepeatMode(project, currentIndex);
+            } else {
+                updateNormalMode(project, currentIndex);
+            }
+            
+            // Update parts progress
+            updatePartsProgress(project, currentIndex);
+            
+            // Update badges
+            updateBadges(project, currentIndex);
+        }
+
+        function updateNormalMode(project, currentIndex) {
+            const csvData = project.csvData;
+            const currentRow = csvData[currentIndex];
+            
+            document.getElementById('normalPattern').style.display = 'block';
+            document.getElementById('repeatPattern').style.display = 'none';
+            
+            document.getElementById('currentPattern').textContent = currentRow.instruction || '';
+            
+            // Calculate total non-repeat rows for progress
+            const totalRows = csvData.filter(r => !r.instruction || !r.instruction.includes('Pattern start')).length;
+            const completedRows = currentIndex;
+            
+            document.getElementById('rowDisplay').textContent = completedRows;
+            const progress = totalRows > 0 ? (completedRows / totalRows) * 100 : 0;
+            updateProgressRing(progress);
+        }
+
+        function updateRepeatMode(project, currentIndex) {
+            const csvData = project.csvData;
+            const startIndex = project.repeatStartIndex;
+            const currentRow = csvData[currentIndex];
+            
+            // Find pattern end
+            let endIndex = startIndex + 1;
+            while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                endIndex++;
+            }
+            
+            // Extract repeat info
+            const startRow = csvData[startIndex];
+            const repeatId = startRow.repeatPattern || 'Pattern';
+            const goalMatch = startRow.instruction.match(/until\s+([^|]+)/);
+            const goal = goalMatch ? goalMatch[1].trim() : '';
+            
+            document.getElementById('normalPattern').style.display = 'none';
+            document.getElementById('repeatPattern').style.display = 'block';
+            
+            document.getElementById('repeatId').textContent = repeatId;
+            document.getElementById('repeatGoal').textContent = `until ${goal}`;
+            document.getElementById('repeatCycle').textContent = `Cycle ${project.repeatCycle + 1}`;
+            
+            // Calculate current stitch count
+            const stitchCount = calculateStitchCount(project, currentIndex);
+            
+            // Show current pattern instruction
+            if (currentRow.instruction) {
+                document.getElementById('repeatPatternText').textContent = currentRow.instruction;
+            }
+        }
+
+        function calculateStitchCount(project, currentIndex) {
+            const csvData = project.csvData;
+            let stitches = 0;
+            
+            // Find initial stitch count
+            for (let i = 0; i <= currentIndex; i++) {
+                const row = csvData[i];
+                if (row.inc) stitches += row.inc;
+                if (row.dec) stitches -= row.dec;
+            }
+            
+            return stitches;
+        }
+
+        function updatePartsProgress(project, currentIndex) {
+            const csvData = project.csvData;
+            const parts = [...new Set(csvData.map(r => r.parts).filter(p => p))];
+            
+            let currentPart = '';
+            for (let i = 0; i <= currentIndex && i < csvData.length; i++) {
+                if (csvData[i].parts) {
+                    currentPart = csvData[i].parts;
+                }
+            }
+            
+            const container = document.getElementById('partsProgress');
+            let html = '';
+            
+            parts.forEach((part, idx) => {
+                const isCompleted = parts.indexOf(currentPart) > idx;
+                const isCurrent = currentPart === part;
+                
+                html += `
+                    <div class="part-item">
+                        <div class="part-dot ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}"></div>
+                        <div class="part-name">${part}</div>
+                    </div>
+                `;
+                
+                if (idx < parts.length - 1) {
+                    html += `<div class="part-line ${isCompleted ? 'completed' : ''}"></div>`;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateBadges(project, currentIndex) {
+            const csvData = project.csvData;
+            const currentRow = csvData[currentIndex];
+            
+            const container = document.getElementById('badgesContainer');
+            let html = '';
+            
+            if (currentRow.side) {
+                html += `<div class="badge">${currentRow.side}</div>`;
+            }
+            
+            const stitches = calculateStitchCount(project, currentIndex);
+            if (stitches > 0) {
+                html += `<div class="badge">${stitches} sts</div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function updateProgressRing(percent) {
+            const circle = document.getElementById('progressCircle');
+            const radius = 110;
+            const circumference = 2 * Math.PI * radius;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function changeRow(delta) {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (!project) return;
+
+            const csvData = project.csvData;
+            
+            if (project.repeatStartIndex !== null) {
+                // In repeat mode
+                const startIndex = project.repeatStartIndex;
+                let endIndex = startIndex + 1;
+                while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                    endIndex++;
+                }
+                
+                const patternRows = [];
+                for (let i = startIndex + 1; i < endIndex; i++) {
+                    if (csvData[i].side) { // Only actual pattern rows
+                        patternRows.push(i);
+                    }
+                }
+                
+                let currentPatternIndex = patternRows.indexOf(project.currentRowIndex);
+                currentPatternIndex += delta;
+                
+                if (currentPatternIndex < 0) {
+                    if (project.repeatCycle > 0) {
+                        project.repeatCycle--;
+                        currentPatternIndex = patternRows.length - 1;
+                    } else {
+                        currentPatternIndex = 0;
+                    }
+                } else if (currentPatternIndex >= patternRows.length) {
+                    project.repeatCycle++;
+                    currentPatternIndex = 0;
+                }
+                
+                project.currentRowIndex = patternRows[currentPatternIndex];
+            } else {
+                // Normal mode
+                project.currentRowIndex = Math.max(0, Math.min((project.currentRowIndex || 0) + delta, csvData.length - 1));
+            }
+
+            saveData();
+            updateCounterDisplay(project);
+        }
+
+        function endRepeat() {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (!project) return;
+
+            const csvData = project.csvData;
+            const startIndex = project.repeatStartIndex;
+            
+            // Find pattern end
+            let endIndex = startIndex + 1;
+            while (endIndex < csvData.length && (!csvData[endIndex].instruction || !csvData[endIndex].instruction.includes('Pattern end'))) {
+                endIndex++;
+            }
+            
+            // Move to next row after pattern end
+            project.currentRowIndex = endIndex + 1;
+            project.repeatStartIndex = null;
+            project.repeatCycle = 0;
+            
+            saveData();
+            updateCounterDisplay(project);
+        }
+
+        function resetCounter() {
+            const project = data.projects.find(p => p.id === currentProjectId);
+            if (project) {
+                project.currentRowIndex = 0;
+                project.repeatStartIndex = null;
+                project.repeatCycle = 0;
+                saveData();
+                updateCounterDisplay(project);
+            }
+        }
+
+        function backToList() {
+            showScreen('listScreen');
+            renderProjectList();
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `knitting-backup-v2-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            alert('Backup saved!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm('Overwrite current data?\n(All existing projects will be deleted)')) {
+                        data = importedData;
+                        saveData();
+                        renderProjectList();
+                        alert('Data restored!');
+                    }
+                } catch (error) {
+                    alert('Invalid backup file');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        init();
+    </script>
+</body>
+</html>
