@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>編み物パターンカウンター v2</title>
+    <title>Knitting Counter v2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -220,7 +220,7 @@
             position: relative;
             width: 250px;
             height: 250px;
-            margin: 20px auto;
+            margin: 10px auto;
         }
 
         .progress-ring {
@@ -307,7 +307,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 16px;
             margin: 20px 0;
             color: white;
         }
@@ -317,6 +317,8 @@
             flex-direction: column;
             align-items: center;
             gap: 4px;
+            width: 80px;
+            min-width: 80px;
         }
 
         .part-dot {
@@ -334,19 +336,12 @@
             background: white;
         }
 
-        .part-line {
-            width: 30px;
-            height: 2px;
-            background: rgba(255,255,255,0.3);
-        }
-
-        .part-line.completed {
-            background: #5a7ea5;
-        }
-
         .part-name {
             font-size: 10px;
             color: rgba(255,255,255,0.6);
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.2;
         }
 
         /* バッジ */
@@ -435,20 +430,22 @@
             background: #333;
             border: none;
             color: white;
-            padding: 12px;
-            min-height: 70px;
+            padding: 6px 12px;
+            min-height: 16px;
+            line-height: 1.1;
+            font-size: 14px;
         }
 
         .notes-label {
             color: #999;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 12px;
+            margin-bottom: 4px;
         }
 
         .counter-section {
             background: #333;
             margin: 12px 20px;
-            padding: 20px;
+            padding: 8px 20px;
             border-radius: 12px;
         }
 
@@ -711,16 +708,15 @@
                 if (!line) continue;
                 
                 const parsed = parseCSVLine(line);
-                if (parsed.length >= 6) {
-                    rows.push({
-                        parts: parsed[0],
-                        side: parsed[1],
-                        inc: parseInt(parsed[2]) || 0,
-                        dec: parseInt(parsed[3]) || 0,
-                        repeatPattern: parsed[4],
-                        instruction: parsed[5]
-                    });
-                }
+                rows.push({
+                    parts: parsed[0] || '',
+                    row: parseInt(parsed[1]) || null,
+                    side: parsed[2] || '',
+                    inc: parseInt(parsed[3]) || 0,
+                    dec: parseInt(parsed[4]) || 0,
+                    repeatPattern: parsed[5] || '',
+                    instruction: parsed[6] || ''
+                });
             }
             
             return rows;
@@ -985,12 +981,24 @@
             
             document.getElementById('currentPattern').textContent = currentRow.instruction || '';
             
-            // Calculate total non-repeat rows for progress
-            const totalRows = csvData.filter(r => !r.instruction || !r.instruction.includes('Pattern start')).length;
-            const completedRows = currentIndex;
+            // Count total countable rows (exclude Pattern start/end markers)
+            let totalCountableRows = 0;
+            let currentCountableIndex = 0;
             
-            document.getElementById('rowDisplay').textContent = completedRows;
-            const progress = totalRows > 0 ? (completedRows / totalRows) * 100 : 0;
+            for (let i = 0; i < csvData.length; i++) {
+                const row = csvData[i];
+                const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
+                
+                if (!isMarker && row.side) {
+                    totalCountableRows++;
+                    if (i <= currentIndex) {
+                        currentCountableIndex++;
+                    }
+                }
+            }
+            
+            document.getElementById('rowDisplay').textContent = currentCountableIndex;
+            const progress = totalCountableRows > 0 ? (currentCountableIndex / totalCountableRows) * 100 : 0;
             updateProgressRing(progress);
         }
 
@@ -1025,6 +1033,27 @@
             if (currentRow.instruction) {
                 document.getElementById('repeatPatternText').textContent = currentRow.instruction;
             }
+            
+            // Update progress ring (keep it frozen during repeat)
+            // Count rows up to the start of repeat pattern
+            let totalCountableRows = 0;
+            let currentCountableIndex = 0;
+            
+            for (let i = 0; i < csvData.length; i++) {
+                const row = csvData[i];
+                const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
+                
+                if (!isMarker && row.side) {
+                    totalCountableRows++;
+                    if (i < startIndex) {
+                        currentCountableIndex++;
+                    }
+                }
+            }
+            
+            document.getElementById('rowDisplay').textContent = currentCountableIndex;
+            const progress = totalCountableRows > 0 ? (currentCountableIndex / totalCountableRows) * 100 : 0;
+            updateProgressRing(progress);
         }
 
         function calculateStitchCount(project, currentIndex) {
@@ -1065,10 +1094,6 @@
                         <div class="part-name">${part}</div>
                     </div>
                 `;
-                
-                if (idx < parts.length - 1) {
-                    html += `<div class="part-line ${isCompleted ? 'completed' : ''}"></div>`;
-                }
             });
             
             container.innerHTML = html;
@@ -1129,20 +1154,34 @@
                 
                 if (currentPatternIndex < 0) {
                     if (project.repeatCycle > 0) {
+                        // Go back one cycle
                         project.repeatCycle--;
                         currentPatternIndex = patternRows.length - 1;
+                        project.currentRowIndex = patternRows[currentPatternIndex];
                     } else {
-                        currentPatternIndex = 0;
+                        // Exit repeat mode - go back to the row before Pattern start
+                        project.currentRowIndex = Math.max(0, startIndex - 1);
+                        project.repeatStartIndex = null;
+                        project.repeatCycle = 0;
                     }
                 } else if (currentPatternIndex >= patternRows.length) {
                     project.repeatCycle++;
                     currentPatternIndex = 0;
+                    project.currentRowIndex = patternRows[currentPatternIndex];
+                } else {
+                    project.currentRowIndex = patternRows[currentPatternIndex];
                 }
-                
-                project.currentRowIndex = patternRows[currentPatternIndex];
             } else {
                 // Normal mode
-                project.currentRowIndex = Math.max(0, Math.min((project.currentRowIndex || 0) + delta, csvData.length - 1));
+                const newIndex = (project.currentRowIndex || 0) + delta;
+                
+                if (newIndex < 0) {
+                    project.currentRowIndex = 0;
+                } else if (newIndex >= csvData.length) {
+                    project.currentRowIndex = csvData.length - 1;
+                } else {
+                    project.currentRowIndex = newIndex;
+                }
             }
 
             saveData();
