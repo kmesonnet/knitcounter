@@ -990,7 +990,8 @@
                 const row = csvData[i];
                 const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
                 
-                if (!isMarker && row.side) {
+                // Count rows that have instruction and are not markers
+                if (!isMarker && row.instruction && row.instruction.trim()) {
                     totalCountableRows++;
                     if (i <= currentIndex) {
                         currentCountableIndex++;
