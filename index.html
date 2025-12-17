@@ -993,7 +993,7 @@
                 // Count rows that have instruction and are not markers
                 if (!isMarker && row.instruction && row.instruction.trim()) {
                     totalCountableRows++;
-                    if (i <= currentIndex) {
+                    if (i < currentIndex) {
                         currentCountableIndex++;
                     }
                 }
@@ -1045,7 +1045,8 @@
                 const row = csvData[i];
                 const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
                 
-                if (!isMarker && row.side) {
+                // Count rows that have instruction and are not markers
+                if (!isMarker && row.instruction && row.instruction.trim()) {
                     totalCountableRows++;
                     if (i < startIndex) {
                         currentCountableIndex++;
@@ -1146,7 +1147,10 @@
                 
                 const patternRows = [];
                 for (let i = startIndex + 1; i < endIndex; i++) {
-                    if (csvData[i].side) { // Only actual pattern rows
+                    // Only actual pattern rows (has instruction and not a marker)
+                    if (csvData[i].instruction && csvData[i].instruction.trim() && 
+                        !csvData[i].instruction.includes('Pattern start') && 
+                        !csvData[i].instruction.includes('Pattern end')) {
                         patternRows.push(i);
                     }
                 }
