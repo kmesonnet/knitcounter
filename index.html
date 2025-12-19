@@ -1165,6 +1165,16 @@
             });
             
             container.innerHTML = html;
+			    setTimeout(() => {
+				const containerWidth = container.offsetWidth;
+				const contentWidth = container.scrollWidth;
+				
+				if (contentWidth > containerWidth) {
+					container.style.justifyContent = 'flex-start';
+				} else {
+					container.style.justifyContent = 'center';
+        }
+    }, 0);
         }
 
 		function updateBadges(project, currentIndex) {
