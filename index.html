@@ -594,6 +594,16 @@
                 <label>Memo</label>
                 <textarea id="memo"></textarea>
             </div>
+			
+			<div class="form-group">
+				<label>Pattern PDF URL</label>
+				<input type="text" id="patternPdfUrl" placeholder="https://drive.google.com/...">
+			</div>
+
+			<div class="form-group">
+				<label>Ravelry URL</label>
+				<input type="text" id="ravelryUrl" placeholder="https://www.ravelry.com/...">
+			</div>
 
             <div class="form-group">
                 <label>Pattern CSV *</label>
@@ -807,6 +817,8 @@
             document.getElementById('yarnDetails').value = project.yarnDetails || '';
             document.getElementById('dyeLot').value = project.dyeLot || '';
             document.getElementById('memo').value = project.memo || '';
+			document.getElementById('patternPdfUrl').value = project.patternPdfUrl || '';  // 追加
+			document.getElementById('ravelryUrl').value = project.ravelryUrl || '';  // 追加
             
             const csvPreview = document.getElementById('csvPreview');
             csvPreview.textContent = uploadedCSVData ? `✓ ${uploadedCSVData.length} rows loaded` : '';
@@ -828,16 +840,18 @@
             editProjectBtn(currentProjectId);
         }
 
-        function clearForm() {
-            document.getElementById('projectName').value = '';
-            document.getElementById('needleSize').value = '';
-            document.getElementById('yarnDetails').value = '';
-            document.getElementById('dyeLot').value = '';
-            document.getElementById('memo').value = '';
-            document.getElementById('csvInput').value = '';
-            document.getElementById('csvPreview').textContent = '';
-            displayPhotoEdit('');
-        }
+		function clearForm() {
+			document.getElementById('projectName').value = '';
+			document.getElementById('needleSize').value = '';
+			document.getElementById('yarnDetails').value = '';
+			document.getElementById('dyeLot').value = '';
+			document.getElementById('memo').value = '';
+			document.getElementById('patternPdfUrl').value = '';  // 追加
+			document.getElementById('ravelryUrl').value = '';  // 追加
+			document.getElementById('csvInput').value = '';
+			document.getElementById('csvPreview').textContent = '';
+			displayPhotoEdit('');
+		}
 
         function saveProject() {
             const name = document.getElementById('projectName').value.trim();
@@ -858,19 +872,23 @@
                 yarnDetails: document.getElementById('yarnDetails').value.trim(),
                 dyeLot: document.getElementById('dyeLot').value.trim(),
                 memo: document.getElementById('memo').value.trim(),
+				patternPdfUrl: document.getElementById('patternPdfUrl').value.trim(),  // 追加
+				ravelryUrl: document.getElementById('ravelryUrl').value.trim(),  // 追加
                 csvData: uploadedCSVData,
                 photo: '',
                 lastUpdated: Date.now()
             };
 
-            if (editingProjectId) {
-                const project = data.projects.find(p => p.id === editingProjectId);
-                projectData.photo = project.photo;
-                projectData.currentRowIndex = project.currentRowIndex || 0;
-                projectData.repeatCycle = project.repeatCycle || 0;
-                projectData.repeatStartIndex = project.repeatStartIndex || null;
-                projectData.notes = project.notes || '';
-                Object.assign(project, projectData);
+			if (editingProjectId) {
+				const project = data.projects.find(p => p.id === editingProjectId);
+				projectData.photo = project.photo;
+				projectData.currentRowIndex = project.currentRowIndex || 0;
+				projectData.repeatCycle = project.repeatCycle || 0;
+				projectData.repeatStartIndex = project.repeatStartIndex || null;
+				projectData.notes = project.notes || '';
+				projectData.patternPdfUrl = projectData.patternPdfUrl || project.patternPdfUrl || '';  // 追加
+				projectData.ravelryUrl = projectData.ravelryUrl || project.ravelryUrl || '';  // 追加
+				Object.assign(project, projectData);
             } else {
                 projectData.id = Date.now().toString();
                 projectData.currentRowIndex = 0;
@@ -1151,24 +1169,34 @@
             container.innerHTML = html;
         }
 
-        function updateBadges(project, currentIndex) {
-            const csvData = project.csvData;
-            const currentRow = csvData[currentIndex];
-            
-            const container = document.getElementById('badgesContainer');
-            let html = '';
-            
-            if (currentRow.side) {
-                html += `<div class="badge">${currentRow.side}</div>`;
-            }
-            
-            const stitches = calculateStitchCount(project, currentIndex);
-            if (stitches > 0) {
-                html += `<div class="badge">${stitches} sts</div>`;
-            }
-            
-            container.innerHTML = html;
-        }
+		function updateBadges(project, currentIndex) {
+			const csvData = project.csvData;
+			const currentRow = csvData[currentIndex];
+			
+			const container = document.getElementById('badgesContainer');
+			let html = '';
+			
+			if (currentRow.side) {
+				html += `<div class="badge">${currentRow.side}</div>`;
+			}
+			
+			const stitches = calculateStitchCount(project, currentIndex);
+			if (stitches > 0) {
+				html += `<div class="badge">${stitches} sts</div>`;
+			}
+			
+			// Pattern PDF link
+			if (project.patternPdfUrl) {
+				html += `<div class="badge" style="cursor: pointer;" onclick="window.open('${project.patternPdfUrl}', '_blank')">📄</div>`;
+			}
+			
+			// Ravelry link
+			if (project.ravelryUrl) {
+				html += `<div class="badge" style="cursor: pointer;" onclick="window.open('${project.ravelryUrl}', '_blank')">🔗</div>`;
+			}
+			
+			container.innerHTML = html;
+		}
 
 			function updateProgressRing(percent) {
 				console.log('Progress percent:', percent);  // これ追加
