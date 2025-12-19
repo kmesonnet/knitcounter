@@ -210,7 +210,7 @@
         /* カウンター画面 */
         .counter-main {
             background: #183E6D;
-            padding: 40px 20px;
+            padding: 50px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -220,11 +220,11 @@
             position: relative;
             width: 250px;
             height: 250px;
-            margin: 10px auto;
+            margin: 0px auto;
         }
 
         .progress-ring {
-            transform: rotate(-90deg);
+            transform: rotate(136deg);
             pointer-events: none;
         }
 
@@ -291,7 +291,7 @@
         }
 
         .circular-btn-main {
-            background: #5a7ea5;
+            background: rgba(90, 126, 165,0.5);
             color: white;
             width: 72px;
             height: 72px;
@@ -304,21 +304,28 @@
         }
 
         /* パーツ進捗バー */
-        .parts-progress {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 16px;
-            margin: 20px 0;
-			padding: 0 20px;
-            color: white;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            flex-wrap: nowrap;
+		.parts-progress {
+			display: flex;
+			align-items: center;
+			justify-content: center;  /* flex-start を center に変更 */
+			gap: 16px;
+			margin: 30px 0;
+			padding: 5px 20px;
+			color: white;
+			overflow-x: auto;
+			overflow-y: hidden;
+			-webkit-overflow-scrolling: touch;
+			flex-wrap: nowrap;
 			touch-action: pan-x;
 			width: 100%;
 			box-sizing: border-box;
-        }
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+
+		.parts-progress::-webkit-scrollbar {
+			display: none;  /* Chrome/Safari用 */
+		}
 
         .part-item {
             display: flex;
@@ -510,8 +517,12 @@
         }
 		
 		@media (max-width: 414px) {
+		    .header {
+            padding: 5px;
+			}
+			
 			.counter-main {
-			padding: 20px 20px;  /* 上下40px → 20pxに削減 */
+			padding: 0px 20px;  /* 上下40px → 20pxに削減 */
 			}
     
 			.circular-progress {
@@ -519,11 +530,11 @@
 			}
     
 			.parts-progress {
-				margin: 10px 0;  /* 上下20px → 10pxに削減 */
+				margin: 5px 0;  /* 上下20px → 10pxに削減 */
 			}
     
 			.badges-container {
-				margin: 10px 0;  /* 上下20px → 10pxに削減 */
+				margin: 5px 0;  /* 上下20px → 10pxに削減 */
 			}
     
 			.pattern-display,
@@ -613,10 +624,10 @@
 
         <div class="counter-main">
             <div class="circular-progress">
-                <svg class="progress-ring" width="250" height="250">
-                    <circle class="progress-ring-circle" cx="125" cy="125" r="110"></circle>
-                    <circle class="progress-ring-progress" id="progressCircle" cx="125" cy="125" r="110"></circle>
-                </svg>
+				<svg class="progress-ring" width="250" height="250">
+					<circle class="progress-ring-circle" cx="125" cy="125" r="110" pathLength="100" stroke-dasharray="75 25"></circle>
+					<circle class="progress-ring-progress" id="progressCircle" cx="125" cy="125" r="110" pathLength="100"></circle>
+				</svg>
                 <div class="counter-display">
                     <div class="counter-number" id="rowDisplay">0</div>
                     <div class="counter-label-small">Rows</div>
@@ -1003,36 +1014,44 @@
             updateBadges(project, currentIndex);
         }
 
-        function updateNormalMode(project, currentIndex) {
-            const csvData = project.csvData;
-            const currentRow = csvData[currentIndex];
-            
-            document.getElementById('normalPattern').style.display = 'block';
-            document.getElementById('repeatPattern').style.display = 'none';
-            
-            document.getElementById('currentPattern').textContent = currentRow.instruction || '';
-            
-            // Count total countable rows (exclude Pattern start/end markers)
-            let totalCountableRows = 0;
-            let currentCountableIndex = 0;
-            
-            for (let i = 0; i < csvData.length; i++) {
-                const row = csvData[i];
-                const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
-                
-                // Count rows that have instruction and are not markers
-                if (!isMarker && row.instruction && row.instruction.trim()) {
-                    totalCountableRows++;
-                    if (i < currentIndex) {
-                        currentCountableIndex++;
-                    }
-                }
-            }
-            
-            document.getElementById('rowDisplay').textContent = currentCountableIndex;
-            const progress = totalCountableRows > 0 ? (currentCountableIndex / totalCountableRows) * 100 : 0;
-            updateProgressRing(progress);
-        }
+		function updateNormalMode(project, currentIndex) {
+			const csvData = project.csvData;
+			const currentRow = csvData[currentIndex];
+			
+			document.getElementById('normalPattern').style.display = 'block';
+			document.getElementById('repeatPattern').style.display = 'none';
+			
+			document.getElementById('currentPattern').textContent = currentRow.instruction || '';
+			
+			// Count total countable rows (exclude Pattern start/end markers)
+			let totalCountableRows = 0;
+			let currentCountableIndex = 0;
+			
+			for (let i = 0; i < csvData.length; i++) {
+				const row = csvData[i];
+				const isMarker = row.instruction && (row.instruction.includes('Pattern start') || row.instruction.includes('Pattern end'));
+				
+				if (!isMarker && row.instruction && row.instruction.trim()) {
+					totalCountableRows++;
+					if (i < currentIndex) {  // <= を < に戻す
+						currentCountableIndex++;
+					}
+				}
+			}
+			
+			document.getElementById('rowDisplay').textContent = currentCountableIndex;
+			
+			let progress = 0;
+			if (totalCountableRows > 1) {
+				// 最終行なら100%、それ以外は通常計算
+				if (currentIndex === csvData.length - 1 || currentCountableIndex === totalCountableRows - 1) {
+					progress = 100;
+				} else {
+					progress = (currentCountableIndex / (totalCountableRows - 1)) * 100;
+				}
+			}
+			updateProgressRing(progress);
+		}
 
         function updateRepeatMode(project, currentIndex) {
             const csvData = project.csvData;
@@ -1151,15 +1170,16 @@
             container.innerHTML = html;
         }
 
-        function updateProgressRing(percent) {
-            const circle = document.getElementById('progressCircle');
-            const radius = 110;
-            const circumference = 2 * Math.PI * radius;
-            const offset = circumference - (percent / 100) * circumference;
-            
-            circle.style.strokeDasharray = `${circumference} ${circumference}`;
-            circle.style.strokeDashoffset = offset;
-        }
+			function updateProgressRing(percent) {
+				console.log('Progress percent:', percent);  // これ追加
+				const circle = document.getElementById('progressCircle');
+				const maxPercent = 75;
+				const adjustedPercent = (Math.min(percent, 100) / 100) * maxPercent;
+				console.log('Adjusted percent:', adjustedPercent);  // これも追加
+				
+				circle.style.strokeDasharray = `${adjustedPercent} ${100}`;
+				circle.style.strokeDashoffset = 0;
+			}
 
         function changeRow(delta) {
             const project = data.projects.find(p => p.id === currentProjectId);
